@@ -1,0 +1,9 @@
+Name	Source
+Neighborhood	neighborhood score， (computed from the inter-gene nucleotide count)
+Fusion	fusion score (derived from fused proteins in other species)
+Cooccurence	cooccurence score of the phyletic profile (derived from similar absence/presence patterns of genes)
+Coexpression	coexpression score (derived from similar pattern of mRNA expression measured by DNA arrays and similar technologies)
+Experimental	experimental score (derived from experimental data， e.g.， affinity chromatography)
+Database	database score (derived from curated data of various databases)
+Textmining	textmining score (derived from the co-occurrence of gene/protein names in abstracts)
+combined_score	The combined score is computed by combining the probabilities from the different evidence channels and corrected for the probability of randomly observing an interaction.

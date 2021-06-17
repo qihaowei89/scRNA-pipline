@@ -1,0 +1,12 @@
+Reads ID内容	例	说明
+Reads ID内容	@ST-E00205	测序仪编号
+Run Number	364	上机编号
+Flowcell ID	HGLWJALXX	流动槽编号(flowcell)
+Lane	4	流动槽中的泳道编号(lane)
+Tile	1101	泳道中区的编号(tile)
+X_pos	14641	区中形成的簇的x坐标号(cluster)
+Y_pos	2100	区中形成的簇的y坐标号(cluster)
+Read	2	测序数据两端(pair end)编号（1或2）
+Is Filtered	N	是否经过过滤，是Y，否则为N
+Is Filtered	0	是否有reads bits作为参考，无为0，否则为偶数
+Index Sequence	GTTGCA	序列索引

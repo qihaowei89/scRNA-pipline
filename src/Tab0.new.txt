@@ -1,0 +1,7 @@
+信息	内容
+合同编号	XXXXXX
+委托单位	XXXXXX
+物种名	XXXXXX
+样品名称	XX
+测序数据量	XXG/样本
+预期细胞数	XX
