@@ -53,15 +53,14 @@ if (params.help) {
     print_yellow        ('    General arguments:Input and output setting\n'                            ) +
     print_cyan          ('      --run   <run1,run2>\n'                                                 ) + 
     print_green         ('        input sample(s) OR run(s) name\n'                                    ) +
-    
     print_cyan          ('      --csv   <csv1,csv2>\n'                                                 ) + 
     print_green         ('        Path to input cellranger multi config.csv(s)\n'                      ) +
     print_cyan          ('      --fastqdirs   <path1,path2>\n'                                         ) + 
     print_green         ('        Path to input fastq file(s)\n'                                       ) +
-    print_cyan          ('      --reads   <path1,path2>\n'                                             ) + 
-    print_green         ('        Path to input data(s)\n'                                             ) +
     print_cyan          ('      --species   <species>\n'                                               ) + 
     print_green         ('        mmu or hsa           \n'                                             ) +
+    print_cyan          ('      --DBname   <DBname>\n'                                                 ) + 
+    print_green         ('        annotation database name of singleR\n'                               ) +
     print_cyan          ('      --DBdir   <DBdir>\n'                                                   ) + 
     print_green         ('        database dir for singleR annotation celltypes\n'                     ) +
     print_cyan          ('      --outdir   <path>\n'                                                   ) + 
@@ -153,7 +152,7 @@ process RunSingleR {
   shell:
     
   """
-  Rscript ${params.bin}/singleSample.R  --fastqDir $fastqdir --inputDir ${params.outdir}/$run --outDir ./ --species hsa --annoDB BlueprintEncodeData --DBdir ${params.DBdir}
+  Rscript ${params.bin}/singleSample.R  --fastqDir $fastqdir --inputDir ${params.outdir}/$run --outDir ./ --species ${params.species} --annoDB ${params.DBname} --DBdir ${params.DBdir}
   """
 }
 
@@ -169,7 +168,7 @@ process RunMergR {
   shell:
     
   """
-  Rscript ${params.bin}/mergR.R  --inputDir ${params.outdir}/merged --outDir ./ --species hsa  --subdivide ${params.run} --annoDB BlueprintEncodeData
+  Rscript ${params.bin}/mergR.R  --inputDir ${params.outdir}/merged --outDir ./ --species ${params.species}  --subdivide ${params.run} --annoDB ${params.DBname}
   """
 }
 
