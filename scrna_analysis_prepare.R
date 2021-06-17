@@ -1,42 +1,57 @@
+#!/usr/bin/env Rscript
+# library 
 options(warn = -1)
 suppressPackageStartupMessages({
   if(interactive()){
     .libPaths(new = "~/miniconda3/lib/R/library")
   }
-  library(clusterProfiler)
-  library(enrichplot)
-  library(ComplexHeatmap)
-  library(GetoptLong)
-  library(data.table)
-  library(ReactomePA)
-  library(patchwork)
-  library(ggplotify)
-  library(optparse)
-  library(tximport)
-  library(magrittr)
-  library(pathview)
-  library(biomaRt)
-  library(scRNAseq)
-  library(SingleR)
-  library(Seurat)
-  library(scater)
-  library(dplyr)
-  library(hdf5r)
-  library(Rmisc) 
-  library(plyr)
-  library(sva)
-  library(DOSE)
-  
-  
-  packages <- c("doMC","iterators")
-  invisible(purrr::map(packages,require,character.only = T))
+  packages <- c("doMC","iterators","clusterProfiler","enrichplot","ComplexHeatmap",
+                "GetoptLong","data.table","ReactomePA","patchwork","ggplotify",
+                "optparse","tximport","magrittr","pathview","biomaRt",
+                "scRNAseq","SingleR","Seurat","scater","dplyr",
+                "dplyr","hdf5r","Rmisc","plyr","sva","DOSE","crayon")
+  for (p in packages) {
+    if(!suppressWarnings(suppressMessages(require(p, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)))){
+      if(!"BiocManager"%in%rownames(installed.packages())) install.packages("BiocManager")
+      # p = "dplyr"
+      BiocManager::install(p,BioC_mirror="https://mirrors.tuna.tsinghua.edu.cn/bioconductor",update = F)
+      suppressWarnings(suppressMessages(require(p, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)))
+    }
+  }
 })
 
-### ------------------------------ function ---------------------------------###
+# function
 CATLOG <- function(text){
-  require(GetoptLong)
-  qq.options("cat_prefix" = function(x) format(Sys.time(), "[INFO %Y-%m-%d %H:%M:%S]: "))
-  qqcat("@{text}\n")
+  suppressPackageStartupMessages({
+    require(GetoptLong)
+    library(crayon)
+  })
+  error <- red $ bold
+  warn <- magenta $ underline
+  note <- cyan $ bold
+  # cat(error("Error: subscript out of bounds!\n"))
+  # cat(warn("Warning: shorter argument was recycled.\n"))
+  # cat(note("Note: no such directory.\n"))
+  qq.options("cat_prefix" = function(x) format(Sys.time(), paste0("[",note("INFO ") ,"%Y-%m-%d %H:%M:%S]: ")))
+  # qqcat("@{text}\n")
+  qqcat(blue("@{text}\n"))
+  qq.options(RESET = TRUE)
+}
+
+CATERR <- function(text){
+  suppressPackageStartupMessages({
+    require(GetoptLong)
+    library(crayon)
+  })
+  error <- red $ bold
+  warn <- magenta $ underline
+  note <- cyan $ bold
+  # cat(error("Error: subscript out of bounds!\n"))
+  # cat(warn("Warning: shorter argument was recycled.\n"))
+  # cat(note("Note: no such directory.\n"))
+  qq.options("cat_prefix" = function(x) format(Sys.time(), paste0("[",error("Error ") ,"%Y-%m-%d %H:%M:%S]: ")))
+  # qqcat("@{text}\n")
+  qqcat(warn("@{text}\n"))
   qq.options(RESET = TRUE)
 }
 
@@ -113,7 +128,7 @@ Cmd <- function(cmd,cl=8,step,f=System,out)
        message(cmd)
        system(cmd)
     }
-
+  library(doParallel)
   # check if out file exists
   cmd_need_run <- cmd[!file.exists(out)]
   out_need_get <- out[!file.exists(out)]
@@ -122,7 +137,11 @@ Cmd <- function(cmd,cl=8,step,f=System,out)
     CATLOG(sprintf("Start %s total(%s), run(%s), skip(%s)",step,length(cmd),length(cmd_need_run),length(cmd)-length(cmd_need_run)))
     stat = foreach(a=iter(cmd_need_run),.combine = c) %dopar% f(a)
     err_cmd <- which(stat!=0)
-    if(length(err_cmd!=0)) system(sprintf("rm -rf %s",out_need_get[err_cmd]))
+    if(length(err_cmd!=0)) {
+      system(sprintf("rm -rf %s",out_need_get[err_cmd]))
+      CATERR(step)
+      break
+    }
     
     CATLOG(sprintf("End %s total(%s), run(%s), skip(%s)",step,length(cmd), length(cmd_need_run)-length(err_cmd),length(err_cmd)))
   }else{
@@ -253,16 +272,48 @@ volcanoPlot <- function(logFC,pValue,FC,main,size){
 DIRCREATE = function(dirs){
   invisible(sapply(dirs, dir.create,recursive = T))
 }
-COPYFILE = function(from.name,to.name,step=""){
+COPYFILE = function(from.name,to.name="",to.dir="",step=""){
   
-  cmd = GetoptLong::qq("cp -r @{from.name} @{to.name}\n") %>% strsplit("\n") %>% '[['(1) 
-  Cmd(cmd = cmd,cl = 10,step = step,out = to.name)
+  if(to.name[1]==""&to.dir[1]!=""){
+    if(!dir.exists(to.dir)) dir.create(to.dir,recursive = T)
+    to.name = file.path(to.dir,basename(from.name))
+    cmd = GetoptLong::qq("cp -r @{from.name} @{to.name}\n") %>% strsplit("\n") %>% '[['(1) 
+    Cmd(cmd = cmd,cl = 10,step = step,out = to.name)
+  }
   
+  if(to.dir[1]==""&to.name[1]!=""){
+    to.dir = base::dirname(to.name)
+    if(!dir.exists(to.dir)) dir.create(to.dir,recursive = T)
+    cmd = GetoptLong::qq("cp -r @{from.name} @{to.name}\n") %>% strsplit("\n") %>% '[['(1) 
+    Cmd(cmd = cmd,cl = 10,step = step,out = to.name)
+  }
   
 }
+
+MOVEFILE = function(from.name,to.name="",to.dir="",step=""){
+  
+  if(to.name[1]==""&to.dir[1]!=""){
+    if(!dir.exists(to.dir)) dir.create(to.dir,recursive = T)
+    to.name = file.path(to.dir,basename(from.name))
+    cmd = GetoptLong::qq("mv @{from.name} @{to.name}\n") %>% strsplit("\n") %>% '[['(1) 
+    Cmd(cmd = cmd,cl = 10,step = step,out = to.name)
+  }
+  
+  if(to.dir[1]==""&to.name[1]!=""){
+    to.dir = base::dirname(to.name)
+    if(!dir.exists(to.dir)) dir.create(to.dir,recursive = T)
+    cmd = GetoptLong::qq("mv @{from.name} @{to.name}\n") %>% strsplit("\n") %>% '[['(1) 
+    Cmd(cmd = cmd,cl = 10,step = step,out = to.name)
+  }
+  
+}
+
+
+
 GETFILE = function(input.dir,pattern){
   list.files(input.dir,pattern = pattern,recursive = T,full.names = T)
 }
+
 FDIR = function(file){
   basename(dirname(file))
 }
@@ -740,5 +791,16 @@ xls2gct = function(xls,species,out,celltype){
 flage <- function(pipeline.log,step){
   invisible(file.create(GetoptLong::qq("@{pipeline.log}/@{step}.flage"),showWarnings=F))
 }
+check.flage <- function(pipeline.log,step){
+  !file.exists(GetoptLong::qq("@{pipeline.log}/@{step}.flage"))
+}
 
 
+makeNames <- function(n){
+  n = gsub(pattern ="[ ]+",replacement = ".",n)
+  
+  return(n)
+}
+
+
+ 

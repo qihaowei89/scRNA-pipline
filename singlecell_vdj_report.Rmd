@@ -68,7 +68,7 @@ d1 %>%kbl() %>%
      
      
 <center>   
-![图 3 10x Genomics 标记单细胞文库流程](src/lib.png{width=50%}        
+![图 3 10x Genomics 标记单细胞文库流程](src/lib.png){width=50%}        
 
 </center>
 
@@ -293,7 +293,7 @@ d1 = read.table("2.Basic_analysis/2.4.BCR/clonotypes.csv",sep = ",",header = T,c
 d1 %>% head ()%>% kbl() %>%
   kable_styling("striped", full_width = T, font_size = 15,
               html_font = "Glyphicons Halflings") %>%
-  row_spec(0, bold = TRUE, background = '#E2EDFA',hline_after = T) %>% scroll_box(width = "500px", height = "200px")
+  row_spec(0, bold = TRUE, background = '#E2EDFA',hline_after = T) %>% scroll_box(width = "800px", height = "200px")
 
 ```     
 
@@ -311,7 +311,7 @@ d1 = read.table("2.Basic_analysis/2.4.BCR/filtered_contig_annotations.csv",sep =
 d1 %>% head () %>%kbl() %>%
   kable_styling("striped", full_width = T, font_size = 15,
               html_font = "Glyphicons Halflings") %>%
-  row_spec(0, bold = TRUE, background = '#E2EDFA',hline_after = T)  %>% scroll_box(width = "500px", height = "200px")
+  row_spec(0, bold = TRUE, background = '#E2EDFA',hline_after = T)  %>% scroll_box(width = "800px", height = "200px")
 
 ```    
 

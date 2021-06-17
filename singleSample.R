@@ -1,5 +1,11 @@
 #!/usr/bin/env Rscript 
-source("/data/wqihao/Project.sc/scrna_analysis_prepare.R")
+
+initial.options <- commandArgs(trailingOnly = FALSE)
+file.arg.name <- "--file="
+script.name <- sub(file.arg.name, "", initial.options[grep(file.arg.name, initial.options)])
+script.basename <- dirname(script.name)
+source(file.path(script.basename,"scrna_analysis_prepare.R"))
+
 if(!interactive()){
   option_list <- list(make_option(c("-f", "--fastqDir"),type="character", help=".*fastq.gz file location"), 
                       make_option(c("-i", "--inputDir"),type="character", help="Cellranger Results Directory"),
@@ -14,14 +20,17 @@ if(!interactive()){
   opts$fastqDir = "/data/wqihao/Project.sc/fqDir/20210610_1sample/GJF1/"
   # opts$inputDir = "/data/wqihao/Project.sc/cellrangeRun/runDir/scRNA_20210511_GP1/"
   opts$inputDir = "/data/wqihao/Project.sc/fqDir/20210610_1sample_outs/run20210611/"
-  opts$outDir   = "/data/wqihao/Project.sc/fqDir/20210610_1sample_outs/"
+  opts$outDir   = "/data/wqihao/Project.sc/work/4e/586b7ea9335763c903477b37c7d80a"
   opts$species  = "hsa"
   # opts$annoDB   = "ImmGenData"
   opts$annoDB   = "BlueprintEncodeData"
   opts$DBdir    = "/data/wqihao/database/refForScrna/singleR.DB/"
 }
 
-BIN = "/data/wqihao/Project.sc/workflow/bin/"
+
+
+
+# BIN = "/data/wqihao/Project.sc/workflow/bin/"
 CATLOG("0.Parse args")
 
 ###### Check options 
@@ -745,13 +754,16 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.graphclust.flage"))
         ggplot2::ggsave(filename = file.path(tmp.DIR,"KEGG",paste0("KEGG",".heatmap.pdf")),plot = p4,width = 20,height =8)
         
         for (ID in kk.tab$ID[1:5] ) {
-          setwd(pathviewDIR)
+          # setwd(pathviewDIR)l
           tryCatch(
             { pathview(gene.data  = geneList,
                        pathway.id = ID,
                        species    = "hsa",
                        kegg.dir = pathviewDIR,
                        limit      = list(gene=max(abs(geneList)), cpd=1))
+              tmp.files = list.files(path = OUT.DIR,pattern = ID,full.names = T)
+              print(tmp.files)
+              MOVEFILE(from.name = tmp.files,to.dir = pathviewDIR,step = "")
             },
             warning = function(w) { cat("warning") },
             error = function(e) { "next" }, 
@@ -863,13 +875,16 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.graphclust.flage"))
       
       
       for (ID in kk.tab$ID[1:5] ) {
-        setwd(pathviewDIR)
+        # setwd(pathviewDIR)
         tryCatch(
           { pathview(gene.data  = geneList,
                      pathway.id = ID,
                      species    = "mmu",
                      kegg.dir = pathviewDIR,
                      limit      = list(gene=max(abs(geneList)), cpd=1))
+            tmp.files = list.files(path = OUT.DIR,pattern = ID,full.names = T)
+            print(tmp.files)
+            MOVEFILE(from.name = tmp.files,to.dir = pathviewDIR,step = "")
           },
           warning = function(w) { cat("warning") },
           error = function(e) { "next" }, 
@@ -995,13 +1010,16 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.SEURAT.flage"))){
       ggplot2::ggsave(filename = file.path(tmp.DIR,"KEGG",paste0("KEGG",".heatmap.pdf")),plot = p4,width = 20,height =8)
       
       for (ID in kk.tab$ID[1:5]) {
-        setwd(pathviewDIR)
+        # setwd(pathviewDIR)
         tryCatch(
           { pathview(gene.data  = geneList,
                      pathway.id = ID,
                      species    = "hsa",
                      kegg.dir = pathviewDIR,
                      limit      = list(gene=max(abs(geneList)), cpd=1))
+            tmp.files = list.files(path = OUT.DIR,pattern = ID,full.names = T)
+            print(tmp.files)
+            MOVEFILE(from.name = tmp.files,to.dir = pathviewDIR,step = "")
           },
           warning = function(w) { cat("warning") },
           error = function(e) { "next" }, 
@@ -1103,13 +1121,16 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.SEURAT.flage"))){
       ggplot2::ggsave(filename = file.path(tmp.DIR,"KEGG",paste0("KEGG",".heatmap.pdf")),plot = p4,width = 20,height =8)
       
       for (ID in kk.tab$ID[1:5]) {
-        setwd(pathviewDIR)
+        # setwd(pathviewDIR)
         tryCatch(
           { pathview(gene.data  = geneList,
                      pathway.id = ID,
                      species    = "mmu",
                      kegg.dir = pathviewDIR,
                      limit      = list(gene=max(abs(geneList)), cpd=1))
+            tmp.files = list.files(path = OUT.DIR,pattern = ID,full.names = T)
+            print(tmp.files)
+            MOVEFILE(from.name = tmp.files,to.dir = pathviewDIR,step = "")
           },
           warning = function(w) { cat("warning") },
           error = function(e) { "next" }, 
@@ -1248,13 +1269,16 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.celltype.flage"))){
       
       suppressPackageStartupMessages(library(pathview))
       for (ID in kk.tab$ID[1:5]) {
-        setwd(pathviewDIR)
+        # setwd(pathviewDIR)
         tryCatch(
           { pathview(gene.data  = geneList,
                      pathway.id = ID,
                      species    = "hsa",
                      kegg.dir = pathviewDIR,
                      limit      = list(gene=max(abs(geneList)), cpd=1))
+            tmp.files = list.files(path = OUT.DIR,pattern = ID,full.names = T)
+            print(tmp.files)
+            MOVEFILE(from.name = tmp.files,to.dir = pathviewDIR,step = "")
           },
           warning = function(w) { cat("warning") },
           error = function(e) { "next" }, 
@@ -1360,13 +1384,16 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.celltype.flage"))){
       ggplot2::ggsave(filename = file.path(tmp.DIR,"KEGG",paste0("KEGG",".heatmap.pdf")),plot = p4,width = 20,height =8)
       
       for (ID in kk.tab$ID[1:5]) {
-        setwd(pathviewDIR)
+        # setwd(pathviewDIR)
         tryCatch(
           { pathview(gene.data  = geneList,
                      pathway.id = ID,
                      species    = "mmu",
                      kegg.dir = pathviewDIR,
                      limit      = list(gene=max(abs(geneList)), cpd=1))
+            tmp.files = list.files(path = OUT.DIR,pattern = ID,full.names = T)
+            print(tmp.files)
+            MOVEFILE(from.name = tmp.files,to.dir = pathviewDIR,step = "")
           },
           warning = function(w) { cat("warning") },
           error = function(e) { "next" }, 
@@ -1412,6 +1439,8 @@ CATLOG("6.Convert pdf2png")
 all.pdf = list.files(OUT.DIR,pattern = ".pdf$",recursive = T,full.names = T)
 all.pdf.rm = grep(pattern = "Rplots.pdf",all.pdf,value = T)
 file.remove(all.pdf.rm) %>% invisible()
+all.png.rm = list.files(OUT.DIR,pattern = ".png$",recursive = F,full.names = T)
+file.remove(all.png.rm) %>% invisible()
 all.pdf = grep(pattern = "Rplots.pdf",all.pdf,value = T,invert = T)
 all.png = gsub(pattern = "pdf",replacement = "png",all.pdf)
 cmd = sprintf("/usr/bin/convert -density 300 %s %s",all.pdf,all.png)
@@ -1423,13 +1452,13 @@ flage(pipeline.log,"6.Convert.pdf2png")
 srcDIR = file.path(OUT.RESTULE.SAMPLEN.DIR,"src")
 DIRCREATE(dirs = srcDIR)
 
-srcfiles = list.files("/data/wqihao/Project.sc/workflow/src/",full.names = T,recursive = T)
+srcfiles = list.files(file.path(script.basename,"src"),full.names = T,recursive = T)
 COPYFILE(from.name = srcfiles,to.dir = srcDIR,step = "Copy src files")
 
 if(any(grepl(pattern = "vdj",fastqFiles))){
   if(check.flage(pipeline.log,"7.html")){
     CATLOG("7.html Rmd2html")
-    file.copy(from = "/data/wqihao/Project.sc/workflow/singlecell_vdj_report.Rmd",to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
+    file.copy(from = file.path(script.basename,"singlecell_vdj_report.Rmd"),to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
     rmarkdown::render(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
     file.remove(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
     file.remove(file.path(OUT.TREE.DIR[1],"per_base_quality.png"))
@@ -1441,7 +1470,7 @@ if(any(grepl(pattern = "vdj",fastqFiles))){
 }else{
   if(check.flage(pipeline.log,"7.html")){
     CATLOG("7.html Rmd2html")
-    file.copy(from = "/data/wqihao/Project.sc/workflow/singlecell_report.Rmd",to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
+    file.copy(from = file.path(script.basename,"singlecell_report.Rmd"),to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
     rmarkdown::render(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
     file.remove(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
     file.remove(file.path(OUT.TREE.DIR[1],"per_base_sequence_content.png"))
@@ -1451,8 +1480,5 @@ if(any(grepl(pattern = "vdj",fastqFiles))){
   }
 
 }
-
-
-
 
 
