@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript 
 source("/data/wqihao/Project.sc/scrna_analysis_prepare.R")
-
 if(!interactive()){
   option_list <- list(make_option(c("-f", "--fastqDir"),type="character", help=".*fastq.gz file location"), 
                       make_option(c("-i", "--inputDir"),type="character", help="Cellranger Results Directory"),
@@ -11,23 +10,23 @@ if(!interactive()){
   opts <- parse_args(OptionParser(option_list=option_list))
 }else{
   opts= list()
-  opts$fastqDir = "/data/wqihao/Project.sc/cellrangeRun/inputFile/GP1_fastqs/"
-  opts$inputDir = "/data/wqihao/Project.sc/cellrangeRun/runDir/scRNA_20210511_GP1/"
-  opts$outDir   = "/data/wqihao/Project.sc/testpipline/"
-  opts$species  = "mmu"
-  opts$annoDB   = "ImmGenData"
+  # opts$fastqDir = "/data/wqihao/Project.sc/cellrangeRun/inputFile/GP1_fastqs/"
+  opts$fastqDir = "/data/wqihao/Project.sc/fqDir/20210610_1sample/GJF1/"
+  # opts$inputDir = "/data/wqihao/Project.sc/cellrangeRun/runDir/scRNA_20210511_GP1/"
+  opts$inputDir = "/data/wqihao/Project.sc/fqDir/20210610_1sample_outs/run20210611/"
+  opts$outDir   = "/data/wqihao/Project.sc/fqDir/20210610_1sample_outs/"
+  opts$species  = "hsa"
+  # opts$annoDB   = "ImmGenData"
+  opts$annoDB   = "BlueprintEncodeData"
   opts$DBdir    = "/data/wqihao/database/refForScrna/singleR.DB/"
 }
 
 BIN = "/data/wqihao/Project.sc/workflow/bin/"
 CATLOG("0.Parse args")
 
-pipeline.log = file.path(opts$outDir,"pipeline.log")
-DIRCREATE(pipeline.log)
-
 ###### Check options 
-if(length(opts) < 4){
-  cat ("Use: Rscript  %prog -h see more Useage \n")
+if(length(opts) < 5){
+  cat ("Use: Rscript  %prog -h see more Usage \n")
   cat ("Version: v1.0\n")
   cat ("Date: 2021-06-03\n")
   break
@@ -36,18 +35,22 @@ if(length(opts) < 4){
 INPUTFASTQ.DIR = opts$fastqDir
 INPUT.DIR = opts$inputDir
 INPUT.OUTS.DIR = file.path(INPUT.DIR,"outs")
-sampleName = basename(INPUT.DIR)
+sampleName = basename(INPUTFASTQ.DIR)
 species = opts$species
 
 # 整理后结果文件夹 -------
 OUT.DIR = opts$outDir
 DIRCREATE(OUT.DIR)
 OUT.RAWDATA.DIR = file.path(OUT.DIR,"raw",c("bamfile","fastqfile"))
+
 OUT.RESTULE.DIR = file.path(OUT.DIR,"out")
 OUT.RAWDATA.SAMPLEN.DIR = file.path(OUT.RAWDATA.DIR,sampleName)
 OUT.RESTULE.SAMPLEN.DIR = file.path(OUT.RESTULE.DIR, sampleName) 
+pipeline.log = file.path(OUT.RESTULE.SAMPLEN.DIR,"pipeline.log")
+DIRCREATE(pipeline.log)
 
-# Setp1 整理输出原始bam,fastq-------
+
+# 整理输出原始bam,fastq-------
 setwd(OUT.DIR)
 DIRCREATE(file.path(OUT.RAWDATA.SAMPLEN.DIR[1],c("count","vdj_b")))
 
@@ -63,12 +66,15 @@ fastqFiles = list.files(INPUT.DIR,pattern = "fastq",recursive = T) %>% grep(patt
 fastqFiles.raw = fastqFiles %>% grep(pattern = "multi",value = T)
 fastqFiles.filter = fastqFiles %>% grep(pattern = "per_sample_outs",value = T)
 
-DIRCREATE(file.path(OUT.RAWDATA.SAMPLEN.DIR[2],c("vdj_b")))
-OUT.fastqFiles.raw = file.path(FDIR(fastqFiles.raw),paste0("raw_",basename(fastqFiles.raw))) %>% file.path(OUT.RAWDATA.SAMPLEN.DIR[2],.)
-OUT.fastqFiles.filter = file.path(FDIR(fastqFiles.filter),paste0("filtered_",basename(fastqFiles.filter))) %>% file.path(OUT.RAWDATA.SAMPLEN.DIR[2],.)
-COPYFILE(from.name = file.path(INPUT.DIR,fastqFiles),to.name = c(OUT.fastqFiles.raw,OUT.fastqFiles.filter),step = "Copy fastq files")
+if(any(grepl(pattern = "vdj",fastqFiles))){
+  DIRCREATE(file.path(OUT.RAWDATA.SAMPLEN.DIR[2],c("vdj_b")))
+  OUT.fastqFiles.raw = file.path(FDIR(fastqFiles.raw),paste0("raw_",basename(fastqFiles.raw))) %>% file.path(OUT.RAWDATA.SAMPLEN.DIR[2],.)
+  OUT.fastqFiles.filter = file.path(FDIR(fastqFiles.filter),paste0("filtered_",basename(fastqFiles.filter))) %>% file.path(OUT.RAWDATA.SAMPLEN.DIR[2],.)
+  COPYFILE(from.name = file.path(INPUT.DIR,fastqFiles),to.name = c(OUT.fastqFiles.raw,OUT.fastqFiles.filter),step = "Copy fastq files")
+}
 
-# Setp2 整理输出文件-------
+
+# 整理输出文件-------
 OUT.TREE.DIR = file.path(OUT.RESTULE.SAMPLEN.DIR,c("1.Data_assess","2.Basic_analysis","3.Cellranger_advanced","4.Seurat","5.Enrichment","6.GSEA","src"))
 # 1.Data_assess --------
 CATLOG("1.Data_assess")
@@ -76,18 +82,40 @@ OUT.Data_assess.DIR = OUT.TREE.DIR[1]
 DIRCREATE(OUT.Data_assess.DIR)
 if(!file.exists(GetoptLong::qq("@{pipeline.log}/1.Data_assess.flage"))){
   rawFastqFiles = list.files(INPUTFASTQ.DIR,pattern = "_R.*.fastq.gz",full.names = T,recursive = T)
-  rawFastqFiles.5GEX = rawFastqFiles %>% grep(pattern = "5gex",value = T) 
-  rawFastqFiles.BCR = rawFastqFiles %>% grep(pattern = "BCR",value = T) 
+  rawFastqFiles.5GEX = rawFastqFiles %>% grep(pattern = "5(gex)?_",value = T) 
+  rawFastqFiles.BCR = rawFastqFiles %>% grep(pattern = "BCR_",value = T) 
   rawFastqFiles.5GEX.tmp = paste(rawFastqFiles.5GEX,collapse = " ")
   rawFastqFiles.5GEX.QC = file.path(OUT.Data_assess.DIR,gsub(pattern = ".fastq.gz",replacement = "_fastqc.zip",basename(rawFastqFiles.5GEX)))
   cmd = GetoptLong::qq("fastqc -o @{OUT.Data_assess.DIR} -t 8 -f fastq @{rawFastqFiles.5GEX.tmp}")
-  Cmd(cmd = cmd,cl = 10,step = "fastq QC",out = rawFastqFiles.5GEX.QC[1])
+  Cmd(cmd = cmd,cl = 10,step = "fastq QC 5GEX",out = rawFastqFiles.5GEX.QC[1])
+  
+  tmpFile = gsub(pattern = ".zip",replacement = "",rawFastqFiles.5GEX.QC[1])
+  cmd = GetoptLong::qq("unzip @{rawFastqFiles.5GEX.QC} -d @{OUT.Data_assess.DIR}\n") %>% strsplit("\n") %>% '[['(1)
+  system(cmd[1])
+  cmd = GetoptLong::qq("cp @{tmpFile}/Images/per_base_quality.png @{OUT.Data_assess.DIR} \n") %>% strsplit("\n") %>% '[['(1)
+  system(cmd[1])
+  cmd = GetoptLong::qq("cp @{tmpFile}/Images/per_base_sequence_content.png @{OUT.Data_assess.DIR} \n") %>% strsplit("\n") %>% '[['(1)
+  system(cmd[1])
+  
+  cmd = GetoptLong::qq("rm -rf @{tmpFile}\n") %>% strsplit("\n") %>% '[['(1)
+  system(cmd[1])
+  
+  if(length(rawFastqFiles.BCR)!=0){
+    rawFastqFiles.BCR.tmp = paste(rawFastqFiles.BCR,collapse = " ")
+    rawFastqFiles.BCR.QC  = file.path(OUT.Data_assess.DIR,gsub(pattern = ".fastq.gz",replacement = "_fastqc.zip",basename(rawFastqFiles.BCR)))
+    cmd = GetoptLong::qq("fastqc -o @{OUT.Data_assess.DIR} -t 8 -f fastq @{rawFastqFiles.BCR.tmp}")
+    Cmd(cmd = cmd,cl = 10,step = "fastq QC BCR",out = rawFastqFiles.BCR.QC[1])
+    
+    
+    
+  }
+  
   flage(pipeline.log,"1.Data_assess")
 }
 
 # 2.Basic_analysis -------- 
 CATLOG("2.Basic_analysis")
-OUT.Basic_analysis.DIR = file.path(OUT.TREE.DIR[2],c("2.1.raw_feature_bc_matrix","2.2.filtered_feature_bc_matrix","2.3.h5_files"))
+OUT.Basic_analysis.DIR = file.path(OUT.TREE.DIR[2],c("2.1.raw_feature_bc_matrix","2.2.filtered_feature_bc_matrix","2.3.h5_files","2.4.BCR"))
 
 rawFeatureMatrix = list.dirs(INPUT.OUTS.DIR,recursive = T,full.names = T) %>% 
   grep(pattern = "raw_feature_bc_matrix",value = T) 
@@ -97,28 +125,33 @@ filteredFeatureMatrix = list.dirs(INPUT.OUTS.DIR,recursive = T,full.names = T) %
   grep(pattern = "sample_feature_bc_matrix",value = T)
 filteredFeatureMatrix.files = list.files(filteredFeatureMatrix,full.names = T)
 filteredH5 = list.files(INPUT.OUTS.DIR,pattern = "sample.*\\.h5$",recursive = T,full.names = T)
+
 DIRCREATE(OUT.Basic_analysis.DIR[1])
 DIRCREATE(OUT.Basic_analysis.DIR[2])
 DIRCREATE(OUT.Basic_analysis.DIR[3])
+DIRCREATE(OUT.Basic_analysis.DIR[4])
 
 metricSummaryJson = GETFILE(input.dir = INPUT.DIR,pattern = "metrics_summary_json") %>% grep(pattern = "SUMMARIZE_REPORTS",value = T) %>% '['(3) # -----------------------
 metricSummaryCsv = GETFILE(input.dir = INPUT.OUTS.DIR,pattern = "metrics_summary.csv")
 web_summary.html = GETFILE(input.dir = INPUT.OUTS.DIR,pattern = "web_summary.html")
+bcfFiles = GETFILE(input.dir = INPUT.OUTS.DIR, pattern = "(clonotypes.csv)|(consensus_annotations.csv)|(consensus.fasta)|(filtered_contig_annotations.csv)")
+
 
 if(!file.exists(GetoptLong::qq("@{pipeline.log}/2.Basic_analysis.flage"))){
-  COPYFILE(from.name = rawFeatureMatrix.files[1],to.name = OUT.Basic_analysis.DIR[1],step = "Copy raw barcodes.tsv.gz")
-  COPYFILE(from.name = rawFeatureMatrix.files[2],to.name = OUT.Basic_analysis.DIR[1],step = "Copy raw features.tsv.gz")
-  COPYFILE(from.name = rawFeatureMatrix.files[3],to.name = OUT.Basic_analysis.DIR[1],step = "Copy raw matrix.mtx.gz")
-  COPYFILE(from.name = filteredFeatureMatrix.files[1],to.name = OUT.Basic_analysis.DIR[2],step = "Copy filtered barcodes.tsv.gz")
-  COPYFILE(from.name = filteredFeatureMatrix.files[2],to.name = OUT.Basic_analysis.DIR[2],step = "Copy filtered features.tsv.gz")
-  COPYFILE(from.name = filteredFeatureMatrix.files[3],to.name = OUT.Basic_analysis.DIR[2],step = "Copy filtered matrix.mtx.gz")
-  COPYFILE(from.name = rawH5,to.name = OUT.Basic_analysis.DIR[3],step = "Copy rawH5")
-  COPYFILE(from.name = filteredH5,
-           to.name = file.path(OUT.Basic_analysis.DIR[3],gsub(pattern = "sample_",replacement = "filtered_",basename(filteredH5))),
+  COPYFILE(from.name = rawFeatureMatrix.files[1],to.dir = OUT.Basic_analysis.DIR[1],step = "Copy raw barcodes.tsv.gz")
+  COPYFILE(from.name = rawFeatureMatrix.files[2],to.dir = OUT.Basic_analysis.DIR[1],step = "Copy raw features.tsv.gz")
+  COPYFILE(from.name = rawFeatureMatrix.files[3],to.dir = OUT.Basic_analysis.DIR[1],step = "Copy raw matrix.mtx.gz")
+  COPYFILE(from.name = filteredFeatureMatrix.files[1],to.dir = OUT.Basic_analysis.DIR[2],step = "Copy filtered barcodes.tsv.gz")
+  COPYFILE(from.name = filteredFeatureMatrix.files[2],to.dir = OUT.Basic_analysis.DIR[2],step = "Copy filtered features.tsv.gz")
+  COPYFILE(from.name = filteredFeatureMatrix.files[3],to.dir = OUT.Basic_analysis.DIR[2],step = "Copy filtered matrix.mtx.gz")
+  COPYFILE(from.name = rawH5,to.dir = OUT.Basic_analysis.DIR[3],step = "Copy rawH5")
+  
+  COPYFILE(from.name = bcfFiles,to.dir = OUT.Basic_analysis.DIR[4],step = "Copy bcfFiles")
+  COPYFILE(from.name = filteredH5,to.name = file.path(OUT.Basic_analysis.DIR[3],gsub(pattern = "sample_",replacement = "filtered_",basename(filteredH5))),
            step = "Copy filteredH5")
-  COPYFILE(from.name = metricSummaryCsv,to.name = file.path(OUT.TREE.DIR[2], basename(metricSummaryCsv)),step = "Copy metricSummaryCsv")
-  COPYFILE(from.name = metricSummaryJson,to.name = file.path(OUT.TREE.DIR[2], basename(metricSummaryJson)),step = "Copy metricSummaryJson")
-  COPYFILE(from.name = web_summary.html,to.name = file.path(OUT.TREE.DIR[2], basename(web_summary.html)),step = "Copy web_summary.html")
+  COPYFILE(from.name = metricSummaryCsv,to.dir = OUT.TREE.DIR[2],step = "Copy metricSummaryCsv")
+  COPYFILE(from.name = metricSummaryJson,to.dir = OUT.TREE.DIR[2],step = "Copy metricSummaryJson")
+  COPYFILE(from.name = web_summary.html,to.dir = OUT.TREE.DIR[2],step = "Copy web_summary.html")
   
   seurat_object = CreateSeuratObject(counts = Read10X(data.dir = filteredFeatureMatrix),project = "cellranger")
   seurat_object[["percent.mt"]] = PercentageFeatureSet(seurat_object, pattern = "^[mM][tT]-") # mm10 mt-  hg19 Mt
@@ -167,10 +200,10 @@ OUT.Cellranger_advanced.DIR = file.path(OUT.TREE.DIR[3],c("cloupe","Cluster_spec
 cloupeFiles = GETFILE(input.dir = INPUT.OUTS.DIR,pattern = "cloupe") %>% grep(pattern = "per_sample_outs",value = T)
 vloupeFiles = GETFILE(input.dir = INPUT.OUTS.DIR,pattern = "vloupe")
 DIRCREATE(file.path(OUT.Cellranger_advanced.DIR[1],c("count","vdj_b")))
-OUT.cloupeFiles = file.path(FDIR(cloupeFiles),paste0(basename(cloupeFiles))) %>% file.path(OUT.Cellranger_advanced.DIR[1],.)
-OUT.vloupeFiles = file.path(FDIR(vloupeFiles),paste0(basename(vloupeFiles))) %>% file.path(OUT.Cellranger_advanced.DIR[1],.)
-COPYFILE(from.name = cloupeFiles,to.name = OUT.cloupeFiles,step = "Copy cloupeFiles")
-COPYFILE(from.name = vloupeFiles,to.name = OUT.vloupeFiles,step = "Copy vloupeFiles")
+# OUT.cloupeFiles = file.path(FDIR(cloupeFiles),paste0(basename(cloupeFiles))) %>% file.path(OUT.Cellranger_advanced.DIR[1],.)
+# OUT.vloupeFiles = file.path(FDIR(vloupeFiles),paste0(basename(vloupeFiles))) %>% file.path(OUT.Cellranger_advanced.DIR[1],.)
+COPYFILE(from.name = cloupeFiles,to.dir = file.path(OUT.Cellranger_advanced.DIR[1],"count"),step = "Copy cloupeFiles")
+COPYFILE(from.name = vloupeFiles,to.dir = file.path(OUT.Cellranger_advanced.DIR[1],"vdj_b"),step = "Copy vloupeFiles")
 # Cluster_specific_genes
 analysisDIR = list.dirs(INPUT.OUTS.DIR,recursive = T,full.names = T) %>% grep(pattern = "analysis",value = T) 
 analysis.TSNE = analysisDIR %>% grep(pattern = "tsne/",value = T) %>% list.files(full.names = T)
@@ -187,11 +220,17 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/3.Cellranger_advanced.Cluster_sp
     cat(clusterType)
     tmp.DIR = file.path(OUT.Cellranger_advanced.DIR[2],clusterType)
     DIRCREATE(tmp.DIR)
+    if(file.exists(file.path(tmp.DIR,paste0(clusterType,".diffexp.volvano.pdf")))){
+      next
+    }
+    
     tmp = read.table(analysis.TSNE,sep = ",",header = T,stringsAsFactors = F)
     tmp.clusters = read.table(analysis.clusters[n],sep = ",",header = T,stringsAsFactors = F)
     tmp.diffexp = read.table(analysis.diffexp[n],sep = ",",header = T,stringsAsFactors = F)
     clusters = colnames(tmp.diffexp)[-c(1,2)] %>% grep(pattern = ".Mean.Counts",value = T) %>% gsub(pattern = ".Mean.Counts",replacement = "") %>% unique()
-    COPYFILE(from.name = analysis.diffexp[n],to.name = file.path(tmp.DIR,paste0(clusterType,".",basename(analysis.diffexp[n]))),step = "")
+    # COPYFILE(from.name = analysis.diffexp[n],to.dir = file.path(tmp.DIR,paste0(clusterType,".",basename(analysis.diffexp[n]))),step = "")
+    COPYFILE(from.name = analysis.diffexp[n],to.dir = tmp.DIR,step = "Copy diffexp")
+    
     tmp.matrix.pvalue =  tmp.diffexp  %>% tidyr::unite("ID", Feature.ID:Feature.Name,sep = ":",remove = T) %>% 
       dplyr::select(matches("(ID)|(Adjusted.p.value)"))
     sig.gene.ids = apply(tmp.matrix.pvalue[,-1] < 0.05, 1, sum)!=0
@@ -397,7 +436,7 @@ CATLOG("4.Seurat")
 OUT.Seurat.DIR = file.path(OUT.TREE.DIR[4],c("1.Expression","2.PCA_analysis","3.Cluster_and_diff","4.celltype_annotation"))
 DIRCREATE(OUT.Seurat.DIR)
 
-if(!file.exists(file.path(OUT.DIR,"seurat_object.filted.RDS"))){
+if(!file.exists(file.path(OUT.TREE.DIR[4],"seurat_object.filted.RDS"))){
   seurat_object <- CreateSeuratObject(counts = Read10X(data.dir = filteredFeatureMatrix),min.cells = 3,min.features = 200,project = "cellranger")
   seurat_object[["percent.mt"]] = PercentageFeatureSet(seurat_object, pattern = "^[mM][tT]-") # mm10 mt-  hg19 Mt
   Max.nUMI  = stats::quantile(seurat_object$nCount_RNA,probs=c(0.99))  %>%  as.numeric()
@@ -413,9 +452,9 @@ if(!file.exists(file.path(OUT.DIR,"seurat_object.filted.RDS"))){
   seurat_object <- FindClusters(seurat_object, resolution = 1)
   seurat_object <- RunUMAP(seurat_object, dims = pcsNumber)
   seurat_object <- RunTSNE(seurat_object, dims = pcsNumber)
-  saveRDS(seurat_object,file = file.path(OUT.DIR,"seurat_object.filted.RDS"))
+  saveRDS(seurat_object,file = file.path(OUT.TREE.DIR[4],"seurat_object.filted.RDS"))
 }else{
-  seurat_object <- readRDS(file.path(OUT.DIR,"seurat_object.filted.RDS"))  
+  seurat_object <- readRDS(file.path(OUT.TREE.DIR[4],"seurat_object.filted.RDS"))  
 }
 
 
@@ -531,7 +570,7 @@ OUT.celltypeAnnotation.DIR = file.path(OUT.Seurat.DIR[4],c("2.celltype_diff","3.
 DIRCREATE(OUT.celltypeAnnotation.DIR)
 
 # ref.rds = "//data/wqihao/database/refForScrna/singleR.DB/ImmGenData.rds"
-if(!file.exists(file.path(OUT.DIR,"seurat_object.filted.celltype.RDS"))){
+if(!file.exists(file.path(OUT.Seurat.DIR[4],"seurat_object.filted.celltype.RDS"))){
   ref.rds    = file.path(opts$DBdir,paste0(opts$annoDB,".rds"))
   ref_object = readRDS(ref.rds)
   sc_object  = SingleCellExperiment(assays=list(counts=seurat_object@assays$RNA@counts))
@@ -546,9 +585,9 @@ if(!file.exists(file.path(OUT.DIR,"seurat_object.filted.celltype.RDS"))){
                     second.tuning.scores=pred$tuning.scores$second)
   seurat_object <- AddMetaData(seurat_object,metadata =pred$labels,col.name = "celltype" )
   Idents(object = seurat_object ) <- 'celltype'
-  saveRDS(seurat_object,file = file.path(OUT.DIR,"seurat_object.filted.celltype.RDS"))
+  saveRDS(seurat_object,file = file.path(OUT.Seurat.DIR[4],"seurat_object.filted.celltype.RDS"))
 }else{
-  seurat_object = readRDS(file = file.path(OUT.DIR,"seurat_object.filted.celltype.RDS"))
+  seurat_object = readRDS(file = file.path(OUT.Seurat.DIR[4],"seurat_object.filted.celltype.RDS"))
 }
 
 if(!file.exists(GetoptLong::qq("@{pipeline.log}/4.Seurat.celltype_annotation.flage"))){
@@ -580,25 +619,25 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/4.Seurat.celltype_annotation.fla
     cluster.markers <- FindMarkers(seurat_object, ident.1 = i, min.pct = 0.25,logfc.threshold = 0.25,min.cells.group = 1)
     cluster.markers = data.frame(gene=rownames(cluster.markers),cluster.markers,check.names = F)
     cluster.markers = merge(cluster.markers,cluster.averages)
-    outname = paste0("celltype.",gsub(pattern = " ",replacement = ".",i),".differential_and_annoation.xls")
+    outname = paste0("celltype.",makeNames(i),".differential_and_annoation.xls")
     write.table(cluster.markers,file = file.path(OUT.celltypeAnnotation.DIR[1],outname),quote = F,sep = "\t",col.names = T,row.names = F)
     top20.tmp = subset(top20,cluster==i)
     cluster.markers.top20 = subset(cluster.markers,gene%in%top20.tmp$gene)
-    outname = paste0("celltype.",gsub(pattern = " ",replacement = ".",i),"_top20_gene_diffInf.xls")
+    outname = paste0("celltype.",makeNames(i),"_top20_gene_diffInf.xls")
     write.table(cluster.markers.top20,file = file.path(OUT.celltypeAnnotation.DIR[2],outname),quote = F,sep = "\t",col.names = T,row.names = F)
     celltype_info.tmp = subset(celltype_info,celltype==i)
     seurat_object.tmp = seurat_object[top20.tmp$gene,celltype_info.tmp$barcode]
     seurat_object.tmp = data.frame(barcode=colnames(seurat_object.tmp),t(seurat_object.tmp@assays$RNA@scale.data))
     celltype_info.tmp = merge(celltype_info.tmp[,-6],seurat_object.tmp)
-    outname = paste0("celltype.",gsub(pattern = " ",replacement = ".",i),"_top20_gene_featureExp.xls")
+    outname = paste0("celltype.",makeNames(i),"_top20_gene_featureExp.xls")
     write.table(celltype_info.tmp,file = file.path(OUT.celltypeAnnotation.DIR[2],outname),quote = F,sep = "\t",col.names = T,row.names = F)
-    outname = paste0("celltype.",gsub(pattern = " ",replacement = ".",i),"_top_gene_exp.pdf")
+    outname = paste0("celltype.",makeNames(i),"_top_gene_exp.pdf")
     p1 = VlnPlot(seurat_object, features = top20.tmp$gene,ncol = 4) + NoLegend()
     ggplot2::ggsave(filename = file.path(OUT.celltypeAnnotation.DIR[2],outname),plot = p1,width = 9,height =20)
-    outname = paste0("celltype.",gsub(pattern = " ",replacement = ".",i),"_top_gene_feature_byTSNE.pdf")
+    outname = paste0("celltype.",makeNames(i),"_top_gene_feature_byTSNE.pdf")
     p2 = FeaturePlot(seurat_object, features = top20.tmp$gene,reduction = "tsne")  
     ggplot2::ggsave(filename = file.path(OUT.celltypeAnnotation.DIR[2],outname),plot = p2,width = 9,height =20)
-    outname = paste0("celltype.",gsub(pattern = " ",replacement = ".",i),"_top_gene_feature_byUMAP.pdf")
+    outname = paste0("celltype.",makeNames(i),"_top_gene_feature_byUMAP.pdf")
     p3 = FeaturePlot(seurat_object, features = top20.tmp$gene,reduction = "umap")  
     ggplot2::ggsave(filename = file.path(OUT.celltypeAnnotation.DIR[2],outname),plot = p3,width = 9,height =20)
   }
@@ -682,11 +721,12 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.graphclust.flage"))
         pathviewDIR = file.path(OUT.KEGG.DIT,"pathview")
         DIRCREATE(OUT.KEGG.DIT)
         DIRCREATE(pathviewDIR)
+  
         kk <- enrichKEGG(gene         = names(geneList),
                          pAdjustMethod = "none",qvalueCutoff = 1,
                          organism     = 'hsa',
                          pvalueCutoff = 0.05)
-        kk <- setReadable(kk, OrgDb = org.Mm.eg.db, keyType="ENTREZID")
+        kk <- setReadable(kk, OrgDb = org.Hs.eg.db, keyType="ENTREZID")
         kk.tab = kk@result
         kk.tab$Hyperlink = paste0("https://www.genome.jp/kegg-bin/show_pathway?",kk.tab$ID)
         write.table(kk.tab,file = file.path(tmp.DIR,"KEGG",paste0("KEGG","_Enrichment_reuslt.xlsx")),quote = F,sep = "\t",row.names = F,col.names = T)
@@ -936,7 +976,7 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.SEURAT.flage"))){
                        pAdjustMethod = "none",qvalueCutoff = 1,
                        organism     = 'hsa',
                        pvalueCutoff = 0.05)
-      kk <- setReadable(kk, OrgDb = org.Mm.eg.db, keyType="ENTREZID")
+      kk <- setReadable(kk, OrgDb = org.Hs.eg.db, keyType="ENTREZID")
       kk.tab = kk@result
       kk.tab$Hyperlink = paste0("https://www.genome.jp/kegg-bin/show_pathway?",kk.tab$ID)
       write.table(kk.tab,file = file.path(tmp.DIR,"KEGG",paste0("KEGG","_Enrichment_reuslt.xlsx")),quote = F,sep = "\t",row.names = F,col.names = T)
@@ -1114,26 +1154,29 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.SEURAT.flage"))){
 #celltype
 if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.celltype.flage"))){
   CATLOG("  Run celltype")
-  for (i in make.names(unique(seurat_object$celltype))) {
+  
+  for (i in unique(seurat_object$celltype)) {
+    i=makeNames(i)
     print(i)
-    tmp.DIR = file.path(OUT.Enrichment.DIR[3],make.names(i))
+    # CATLOG(i)
+    tmp.DIR = file.path(OUT.Enrichment.DIR[3],makeNames(i))
     DIRCREATE(tmp.DIR)
     
     if(file.exists(GetoptLong::qq("@{tmp.DIR}/celltype.@{i}.finished.flag"))){
       next
     }
     
-    inputname = paste0("celltype.",gsub(pattern = " ",replacement = ".",i),".differential_and_annoation.xls")
+    inputname = paste0("celltype.",makeNames(i),".differential_and_annoation.xls")
     cluster.markers = read.table(file.path(OUT.celltypeAnnotation.DIR[1],inputname),header = T,sep = "\t",check.names = F)
     cluster.markers.sig = subset(cluster.markers,p_val_adj<0.05)
-    colnames(cluster.markers.sig) %<>% make.names()
+    colnames(cluster.markers.sig) %<>% makeNames()
     de.genes.tmp = cluster.markers.sig[,c(1,which(colnames(cluster.markers.sig)==i),3,6)]
     colnames(de.genes.tmp)  = c("symbol","mean_counts","logFC","adj_pval")
     write.table(de.genes.tmp,file = file.path(tmp.DIR,paste0("celltype.",i,".gene.txt")),quote = F,sep = "\t",row.names = F,col.names = T)
     
     
     if(species=="hsa"){
-      library(org.Hs.eg.db)
+      suppressPackageStartupMessages(library(org.Hs.eg.db))
       gene.df <- bitr(cluster.markers.sig$gene, fromType = "SYMBOL",
                       toType = c("ENTREZID"),drop = F,
                       OrgDb = org.Hs.eg.db) %>% invisible()
@@ -1185,7 +1228,7 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.celltype.flage"))){
                        pAdjustMethod = "none",qvalueCutoff = 1,
                        organism     = 'hsa',
                        pvalueCutoff = 0.05)
-      kk <- setReadable(kk, OrgDb = org.Mm.eg.db, keyType="ENTREZID")
+      kk <- setReadable(kk, OrgDb = org.Hs.eg.db, keyType="ENTREZID")
       kk.tab = kk@result
       kk.tab$Hyperlink = paste0("https://www.genome.jp/kegg-bin/show_pathway?",kk.tab$ID)
       write.table(kk.tab,file = file.path(tmp.DIR,"KEGG",paste0("KEGG","_Enrichment_reuslt.xlsx")),quote = F,sep = "\t",row.names = F,col.names = T)
@@ -1203,7 +1246,7 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.celltype.flage"))){
       ggplot2::ggsave(filename = file.path(tmp.DIR,"KEGG",paste0("KEGG",".Gene-Term_Network.pdf")),plot = p7,width = 20,height =8)
       ggplot2::ggsave(filename = file.path(tmp.DIR,"KEGG",paste0("KEGG",".heatmap.pdf")),plot = p4,width = 20,height =8)
       
-      library(pathview)
+      suppressPackageStartupMessages(library(pathview))
       for (ID in kk.tab$ID[1:5]) {
         setwd(pathviewDIR)
         tryCatch(
@@ -1363,6 +1406,7 @@ if(!file.exists(GetoptLong::qq("@{pipeline.log}/5.Enrichment.celltype.flage"))){
   CATLOG("  Skip celltype")
 }
 
+
 # 6.Convert --------
 CATLOG("6.Convert pdf2png")
 all.pdf = list.files(OUT.DIR,pattern = ".pdf$",recursive = T,full.names = T)
@@ -1370,11 +1414,45 @@ all.pdf.rm = grep(pattern = "Rplots.pdf",all.pdf,value = T)
 file.remove(all.pdf.rm) %>% invisible()
 all.pdf = grep(pattern = "Rplots.pdf",all.pdf,value = T,invert = T)
 all.png = gsub(pattern = "pdf",replacement = "png",all.pdf)
-# file.remove(all.png) %>% invisible()
-# all.png.old =  gsub(pattern = "pdf",replacement = "ppi.png",all.pdf)
-# file.rename(from = all.png,to = all.png.old) %>% invisible()
-
 cmd = sprintf("/usr/bin/convert -density 300 %s %s",all.pdf,all.png)
 Cmd(cmd = cmd,cl =16 ,out = all.png,step = "Convert pdf 2 png",f = system)
+flage(pipeline.log,"6.Convert.pdf2png")
+
+
+# 7.html report
+srcDIR = file.path(OUT.RESTULE.SAMPLEN.DIR,"src")
+DIRCREATE(dirs = srcDIR)
+
+srcfiles = list.files("/data/wqihao/Project.sc/workflow/src/",full.names = T,recursive = T)
+COPYFILE(from.name = srcfiles,to.dir = srcDIR,step = "Copy src files")
+
+if(any(grepl(pattern = "vdj",fastqFiles))){
+  if(check.flage(pipeline.log,"7.html")){
+    CATLOG("7.html Rmd2html")
+    file.copy(from = "/data/wqihao/Project.sc/workflow/singlecell_vdj_report.Rmd",to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
+    rmarkdown::render(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
+    file.remove(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
+    file.remove(file.path(OUT.TREE.DIR[1],"per_base_quality.png"))
+    file.remove(file.path(OUT.TREE.DIR[1],"per_base_sequence_content.png"))
+    flage(pipeline.log,"7.html")
+  }else{
+    CATLOG("7.html Rmd2html")
+  }
+}else{
+  if(check.flage(pipeline.log,"7.html")){
+    CATLOG("7.html Rmd2html")
+    file.copy(from = "/data/wqihao/Project.sc/workflow/singlecell_report.Rmd",to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
+    rmarkdown::render(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
+    file.remove(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
+    file.remove(file.path(OUT.TREE.DIR[1],"per_base_sequence_content.png"))
+    flage(pipeline.log,"7.html")
+  }else{
+    CATLOG("7.html Rmd2html")
+  }
+
+}
+
+
+
 
 

@@ -86,7 +86,7 @@ d1 %>%kbl() %>%
   
 <center>     
 
-![图 1 10x Genomics平台](src/10x Genomics平台.png){width=50% }    
+![图 1 10x Genomics平台](src/platform.png){width=50% }    
 
 </center>
 
@@ -98,7 +98,7 @@ d1 %>%kbl() %>%
 ## 3 项目流程   
 
 <center>    
-![图 2 Chromium^TM^ Single Cell Gene Expression Solution项目流程图](src/项目流程.png){width=20% }    
+![图 2 Chromium^TM^ Single Cell Gene Expression Solution项目流程图](src/Project.png){width=20% }    
 
 </center>
 
@@ -113,7 +113,7 @@ d1 %>%kbl() %>%
      
      
 <center>   
-![图 3 10x Genomics 标记单细胞文库流程](src/10x Genomics 标记单细胞文库流程.png){width=50%}        
+![图 3 10x Genomics 标记单细胞文库流程](src/lib.png{width=50%}        
 
 </center>
 
@@ -121,8 +121,8 @@ d1 %>%kbl() %>%
   
 <center>   
 
-![](src/文库构建结果.png){width=60%}    
-![](src/VDJ文库构建结果.png){width=60%}   
+![](src/GXE.png){width=60%}    
+![](src/VDJ.png){width=60%}   
 图 4 文库构建结果      
 注：上图为10X Genomics 5’gene expression 文库示意图，下图为10X Genomics V(D)J 文库示意图
 
@@ -136,7 +136,7 @@ d1 %>%kbl() %>%
   
 
 <center>
-![图 5 数据基础分析流程图](src/数据基础分析流程图合并样本.png){width=60%} 
+![图 5 数据基础分析流程图](src/pipelineCombine.png){width=60%} 
 </center> 
 
 ### 4.1 原始序列数据   
@@ -146,7 +146,7 @@ d1 %>%kbl() %>%
   下图是 fastq 格式文件的示意图：    
 <center>    
 
-![图 6 FASTQ文件格式](src/FASTQ文件格式.png){width=70%}     
+![图 6 FASTQ文件格式](src/FASTQ.png){width=70%}     
 
 </center>
 
@@ -193,7 +193,7 @@ Read包含RNA序列，Cell ranger使用STAR【2】将Read2比对到合适的参�
 
 <center>
 
-![](src/STAR算法.png){width=50%}    
+![](src/STAR.png){width=50%}    
 图7 STAR算法
 </center>
 
@@ -368,7 +368,7 @@ d1 %>% head () %>%kbl() %>%
 ```{r echo=F}
 library(knitr)
 library(kableExtra)
-table1 = read.table(file = "2.Cellranger_advanced/Cluster_specific_genes/graphclust/graphclust.differential_expression.csv",sep = ",",header = T)
+table1 = read.table(file = "2.Cellranger_advanced/Cluster_specific_genes/graphclust/differential_expression.csv",sep = ",",header = T)
 
 table1[,1:5] %>%kbl(row.names = F) %>%
   kable_styling("striped", full_width = T, font_size = 15, position ="center",
@@ -401,7 +401,7 @@ table1[,1:5] %>%kbl(row.names = F) %>%
   10x Genomics 提供了官方的查看，再分析的可视化软件，界面如下图所示：     
 <center>
 
-![](src/下载.png){width=50%}     
+![](src/Download.png){width=50%}     
 图 16 Loupe Cell Browser 细胞可视化    
 </center>
 Loupe Cell Browser使用的相关文件见路径：result/Cell_Browser：其中Loupe-Cell-Browser-3.1.1.exe为软件应用程序；Tutorial.html 为软件中英文对照使用说明；result/2.Cellranger_advanced/{sample}/cloupe/cloupe.cloupe为导入文件，安装软件后，双击即可打开。    

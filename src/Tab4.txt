@@ -1,0 +1,8 @@
+注释数据集	物种	数据集细胞数量	样本类型	主要细胞类型	关注的细胞类型
+HumanPrimaryCellAtlasData	human	713	microarrays of sorted cell populations	37	Non-specific
+BlueprintEncodeData	human	259	RNA-seq	24	Non-specific
+DatabaseImmuneCellExpressionData	human	1561	RNA-seq	5	Immune
+NovershternHematopoieticData	human	211	microarrays of sorted cell populations	17	Hematopoietic & Immune
+MonacoImmuneData	human	114	RNA-seq	11	Immune
+ImmGenData	mouse	830	microarrays of sorted cell populations	20	Hematopoietic & Immune
+MouseRNAseqData	mouse	358	RNA-seq	18	Non-specific

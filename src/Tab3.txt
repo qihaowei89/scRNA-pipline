@@ -1,0 +1,9 @@
+软件	版本	功能	License	相关资料
+Cell Ranger	6.0.1	单细胞测序数据分析软件		https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/what-is-cell-ranger(具体版本见web的Summary部分)
+Loupe Cell Browser	5.0.1	细胞浏览器		https://support.10xgenomics.com/single-cell-gene-expression/software/visualization/latest/what-is-loupe-cell-browser
+STAR	2.5.1b	RNA比对	GPLv3	https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf
+irlbpy	-	PCA分析	APL2	https://github.com/bwlewis/irlba/blob/master/vignettes/irlba.pdf
+tsne	0.15	Barnes-Hut T-SNE分析	Apache 2.0	http://lvdmaaten.github.io/tsne/
+k-means	0.17	kmeans聚类	BSD 3 clause	http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+graph-based clustering	0.17	graph-based聚类	BSD 3 clause	http://scikit-learn.org/stable/modules/generated/sklearn.neighbors.NearestCentroid.html
+FastQC	v0.11.2	数据质控		http://www.bioinformatics.babraham.ac.uk/projects/fastqc/

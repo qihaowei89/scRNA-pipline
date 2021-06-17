@@ -39,7 +39,7 @@ d1 %>%kbl() %>%
   
 <center>     
 
-![图 1 10x Genomics平台](src/10x Genomics平台.png){width=50% }    
+![图 1 10x Genomics平台](src/platform.png){width=50% }    
 
 </center>
 
@@ -51,7 +51,7 @@ d1 %>%kbl() %>%
 ## 3 项目流程   
 
 <center>    
-![图 2 Chromium^TM^ Single Cell Gene Expression Solution项目流程图](src/项目流程.png){width=20% }    
+![图 2 Chromium^TM^ Single Cell Gene Expression Solution项目流程图](src/Project.png){width=20% }    
 
 </center>
 
@@ -66,7 +66,7 @@ d1 %>%kbl() %>%
      
      
 <center>   
-![图 3 10x Genomics 标记单细胞文库流程](src/10x Genomics 标记单细胞文库流程.png){width=50%}        
+![图 3 10x Genomics 标记单细胞文库流程](src/lib.png{width=50%}        
 
 </center>
 
@@ -74,7 +74,7 @@ d1 %>%kbl() %>%
   
 <center>   
 
-![图 4 文库构建结果](src/文库构建结果.png){width=60%}    
+![图 4 文库构建结果](src/GXE.png){width=60%}    
 
    
 </center>    
@@ -87,7 +87,7 @@ d1 %>%kbl() %>%
   
 
 <center>
-![图 5 数据基础分析流程图](src/数据基础分析流程图.png){width=60%} 
+![图 5 数据基础分析流程图](src/pipeline.png){width=60%} 
 </center> 
 
 ### 4.1 原始序列数据   
@@ -97,7 +97,7 @@ d1 %>%kbl() %>%
   下图是 fastq 格式文件的示意图：    
 <center>    
 
-![图 6 FASTQ文件格式](src/FASTQ文件格式.png){width=70%}     
+![图 6 FASTQ文件格式](src/FASTQ.png){width=70%}     
 
 </center>
 
@@ -134,7 +134,7 @@ d1 %>%kbl() %>%
    每个碱基测序错误率是通过测序质量值(Qphred)通过公式1转化得到，而测序质量值是在碱基识别(Base Calling)过程中通过一种概率模型计算得到，可以准确地预测碱基识别的错误率。其中，测序质量值和测序错误率关系如公式（1）。   
 
 <center>
-![](src/公式1.png){width=50%}   
+![](src/format.png){width=50%}   
 </center>   
 
    其中，P表示碱基测错的概率，Q表示碱基质量值。根据此公式，可计算出测序错误率和测序质量值的简明对应列表：   
@@ -163,7 +163,7 @@ d1 %>%kbl() %>%
 <center>    
 
 
-![](1.Data_assess/GP1-5_S2_L004_R1_001_fastqc/per_base_quality.png){width=35%}![](1.Data_assess/GP1-5_S2_L004_R1_001_fastqc/per_base_sequence_content.png){width=35%}     
+![](1.Data_assess//per_base_quality.png){width=35%}![](1.Data_assess//per_base_sequence_content.png){width=35%}     
 图 7 碱基质量值分布图和碱基含量分布图
 
 </center>
@@ -212,7 +212,7 @@ Read包含RNA序列，Cell ranger使用STAR【2】将Read2比对到合适的参�
 
 <center>
 
-![](src/STAR算法.png){width=50%}    
+![](src/STAR.png){width=50%}    
 图8 STAR算法
 </center>
 
@@ -348,7 +348,7 @@ out %>%kbl(row.names = F) %>%
 ```{r echo=F}
 library(knitr)
 library(kableExtra)
-table1 = read.table(file = "3.Cellranger_advanced/Cluster_specific_genes/graphclust/graphclust.differential_expression.csv",sep = ",",header = T)
+table1 = read.table(file = "3.Cellranger_advanced/Cluster_specific_genes/graphclust/differential_expression.csv",sep = ",",header = T)
 
 table1[,1:5] %>%kbl(row.names = F) %>%
   kable_styling("striped", full_width = T, font_size = 15, position ="center",
@@ -381,7 +381,7 @@ table1[,1:5] %>%kbl(row.names = F) %>%
   10x Genomics 提供了官方的查看，再分析的可视化软件，界面如下图所示：     
 <center>
 
-![](src/下载.png){width=50%}     
+![](src/Download.png){width=50%}     
 图 17 Loupe Cell Browser 细胞可视化    
 </center>
 Loupe Cell Browser使用的相关文件见路径：result/Cell_Browser：其中Loupe-Cell-Browser-3.1.1.exe为软件应用程序；Tutorial.html 为软件中英文对照使用说明；result/2.Cellranger_advanced/{sample}/cloupe/cloupe.cloupe为导入文件，安装软件后，双击即可打开。    
