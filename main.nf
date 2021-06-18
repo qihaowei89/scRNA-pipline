@@ -91,13 +91,13 @@ singlerObj = runs2.merge (fastqs)
 
 process RunCellrangerMulti {
   publishDir pattern: "*", path: "${params.outdir}", mode: 'copy'
-  tag "$run"
+  //tag "$run"
   
   input:
   set (run, csv) from channelObj 
   
   output:
-  file ("*") into ValidateOutput1s,GeneratAggrCsvObj
+  file ("*") into ValidateOutput1s,AggrObj,GeneratAggrCsvObj
 
   shell:
   """
@@ -112,6 +112,7 @@ process GeneratAggrCsv {
   
   input:
   file h5s from GeneratAggrCsvObj.collect()
+  
   output:
   file 'aggr.csv' into CellrangerAggrObj
   
@@ -129,6 +130,7 @@ process RunCellrangerAggr{
   
   input:
   file aggrCsv from CellrangerAggrObj 
+  file ("*") from AggrObj.collect()
   
   output:
   file("*") into ValidateOutput2
@@ -143,7 +145,7 @@ process RunSingleR {
   publishDir pattern: "*", path: "${params.outdir}/report", mode: 'copy'
   
   input:
-  file aggrCsv  from ValidateOutput1s 
+  file aggrCsv  from ValidateOutput1s.collect() 
   set (run, fastqdir) from  singlerObj
   
   output:

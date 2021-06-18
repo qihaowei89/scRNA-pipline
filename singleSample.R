@@ -18,9 +18,10 @@ if(!interactive()){
   opts= list()
   # opts$fastqDir = "/data/wqihao/Project.sc/cellrangeRun/inputFile/GP1_fastqs/"
   opts$fastqDir = "/data/wqihao/Project.sc/fqDir/20210610_1sample/GJF1/"
+  
   # opts$inputDir = "/data/wqihao/Project.sc/cellrangeRun/runDir/scRNA_20210511_GP1/"
-  opts$inputDir = "/data/wqihao/Project.sc/fqDir/20210610_1sample_outs/run20210611/"
-  opts$outDir   = "/data/wqihao/Project.sc/work/4e/586b7ea9335763c903477b37c7d80a"
+  opts$inputDir = "/data/wqihao/Project.sc/fqDir/20210616_2sample_tests/run1/"
+  opts$outDir   = "/data/wqihao/Project.sc/work/79/37ee70d63c66a186f3936013c7329e"
   opts$species  = "hsa"
   # opts$annoDB   = "ImmGenData"
   opts$annoDB   = "BlueprintEncodeData"
