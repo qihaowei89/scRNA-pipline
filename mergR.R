@@ -1,5 +1,11 @@
 #!/usr/bin/env Rscript 
-source("/data/wqihao/Project.sc/scrna_analysis_prepare.R")
+
+initial.options <- commandArgs(trailingOnly = FALSE)
+file.arg.name <- "--file="
+script.name <- sub(file.arg.name, "", initial.options[grep(file.arg.name, initial.options)])
+script.basename <- dirname(script.name)
+source(file.path(script.basename,"scrna_analysis_prepare.R"))
+
 if(!interactive()){
   option_list <- list(
                       make_option(c("-i", "--inputDir"),type="character", help="Cellranger Results Directory"),
@@ -2141,17 +2147,15 @@ flage(pipeline.log,"9.Convert.pdf2png")
 srcDIR = file.path(OUT.RESTULE.SAMPLEN.DIR,"src")
 DIRCREATE(dirs = srcDIR)
 
-srcfiles = list.files("/data/wqihao/Project.sc/workflow/src/",full.names = T,recursive = T)
+srcfiles = list.files(file.path(script.basename,"src"),full.names = T,recursive = T)
 COPYFILE(from.name = srcfiles,to.dir = srcDIR,step = "Copy src files")
 
 if(any(grepl(pattern = "vdj",fastqFiles))){
   if(check.flage(pipeline.log,"10.html")){
     CATLOG("10.html Rmd2html")
-    file.copy(from = "/data/wqihao/Project.sc/workflow/singlecell_vdj_report.Rmd",to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
-    rmarkdown::render(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
-    file.remove(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report.Rmd"))
-    file.remove(file.path(OUT.TREE.DIR[1],"per_base_quality.png"))
-    file.remove(file.path(OUT.TREE.DIR[1],"per_base_sequence_content.png"))
+    file.copy(from = file.path(script.basename,"singlecell_vdj_report_combine.Rmd"),to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report_combine.Rmd"))
+    rmarkdown::render(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report_combine.Rmd"))
+    file.remove(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_vdj_report_combine.Rmd"))
     flage(pipeline.log,"10.html")
   }else{
     CATLOG("10.html Rmd2html")
@@ -2159,15 +2163,13 @@ if(any(grepl(pattern = "vdj",fastqFiles))){
 }else{
   if(check.flage(pipeline.log,"10.html")){
     CATLOG("10.html Rmd2html")
-    file.copy(from = "/data/wqihao/Project.sc/workflow/singlecell_report.Rmd",to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
+    file.copy(from = file.path(script.basename,"singlecell_report.Rmd"),to = file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
     rmarkdown::render(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
     file.remove(file.path(OUT.RESTULE.SAMPLEN.DIR,"singlecell_report.Rmd"))
-    file.remove(file.path(OUT.TREE.DIR[1],"per_base_sequence_content.png"))
     flage(pipeline.log,"10.html")
   }else{
     CATLOG("10.html Rmd2html")
   }
-  
 }
 
 
